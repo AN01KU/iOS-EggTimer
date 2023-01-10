@@ -7,6 +7,9 @@
 //
 
 import UIKit
+import AVFoundation
+
+var player: AVAudioPlayer?
 
 class ViewController: UIViewController {
     
@@ -18,9 +21,15 @@ class ViewController: UIViewController {
     @IBOutlet weak var progressBar: UIProgressView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBAction func softnessSelected(_ sender: UIButton) {
+        
         timer.invalidate()
         let hardness = sender.currentTitle!
         totalTime = eggTimes[hardness]!
+        
+        secondsPassed = 0
+        progressBar.progress = 0.0
+        titleLabel.text = hardness
+        
         timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
     }
     
@@ -30,9 +39,26 @@ class ViewController: UIViewController {
             progressBar.progress = Float(Float(secondsPassed) / Float(totalTime))
         } else {
             timer.invalidate()
-            secondsPassed = 0
-            progressBar.progress = 0.0
             titleLabel.text = "Done"
+            playSound()
+        }
+    }
+    
+    func playSound() {
+        guard let url = Bundle.main.url(forResource: "alarm_sound", withExtension: "mp3") else { return }
+
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+
+            player = try AVAudioPlayer(contentsOf: url, fileTypeHint: AVFileType.mp3.rawValue)
+
+            guard let player = player else { return }
+
+            player.play()
+
+        } catch let error {
+            print(error.localizedDescription)
         }
     }
 
